@@ -24,7 +24,7 @@ OTHER = 0
 FRAGMENT_LENGTH = 5
 
 NEWLINE = re.compile('(\n|\r)+')
-QUOTES = {'"', "'", "&quot", "&laquo", "&raquo", '``', "''"}
+QUOTES = {'"', "&quot", "&laquo", "&raquo", '``', "''"}
 
 
 def categorize(tokens):
