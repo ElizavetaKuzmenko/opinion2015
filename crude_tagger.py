@@ -1,3 +1,4 @@
+# coding: utf-8
 __author__ = 'Sereni'
 """
 A module that creates gold standard by crudely marking direct speech borders
