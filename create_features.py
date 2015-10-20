@@ -1,16 +1,18 @@
+# coding: utf-8
 __author__ = 'elmira'
 
 import os
 import re
 import pymorphy2
-from crude_tagger import tokenize, replace_newlines, categorize
+from crude_tagger import tokenize, replace_newlines
+from crude_tagger import categorize_direct as categorize
 from xml.etree import ElementTree as et
 
 # morphological parser
 morph = pymorphy2.MorphAnalyzer()
 
 # directory with files
-DIRNAME = 'data_short'
+DIRNAME = 'sample'
 
 # token markers
 END_OF_FILE = ' EOF '
@@ -27,11 +29,11 @@ FRAGMENT_LENGTH = 5
 NEWLINE = re.compile('(\n|\r)+')
 QUOTES = {'"', "&quot", "&laquo", "&raquo", '``', "''"}
 SPEECH_VERBS = []
-with open('verbs_with_tenses.txt', 'r', encoding='utf-8') as verbs:
+with open('verbs_with_tenses.txt', 'r') as verbs:
     SPEECH_VERBS += [i.strip() for i in verbs.readlines()]
 
 SPEECH_PUNCT = []
-with open('speech_punct.txt', 'r', encoding='utf-8') as verbs:
+with open('speech_punct.txt', 'r') as verbs:
     SPEECH_PUNCT += [i.strip() for i in verbs.readlines()]
 
 
@@ -128,9 +130,31 @@ def analyze(tokens):
     return analyzed_tokens
 
 
-def features(DIRNAME):
+def features(text):
+    feats = []
+
+
+    # tokenize text
+    tokenized_text = tokenize(text)
+
+    # analyze tokens
+    analyzed = analyze(tokenized_text)
+
+    # categorize tokens
+    categorized = categorize(tokenized_text)
+
+    # write output
+    for token, category_tuple in zip(analyzed, categorized):
+        token.category = str(category_tuple[1])
+        feats.append(str(token))
+    return feats
+
+
+
+if __name__ == '__main__':
+
     dir_path = os.path.join(os.getcwd(), DIRNAME)
-    output = open('features.csv', 'w', encoding='utf-8')
+    output = open('features.csv', 'w')
 
     # iterate through data folder
     for filename in sorted(os.listdir(dir_path)):
@@ -143,19 +167,8 @@ def features(DIRNAME):
                 # get content
                 contents = et.fromstring(f.read())
                 text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
-
-                # tokenize text
-                tokenized_text = tokenize(text)
-
-                # analyze tokens
-                analyzed = analyze(tokenized_text)
-
-                # categorize tokens
-                categorized = categorize(tokenized_text)
-
-                # write output
-                for token, category_tuple in zip(analyzed, categorized):
-                    token.category = str(category_tuple[1])
-                    output.write('%s\t%s\n' % (filename, str(token)))
+                feats = features(text)
+                for element in feats:
+                    output.write('%s\t%s\n' % (filename, element))
 
     output.close()
