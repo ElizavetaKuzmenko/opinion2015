@@ -16,7 +16,7 @@ clf1 = LinearSVC()
 # from sklearn.naive_bayes import GaussianNB
 
 # directory with files
-DIRNAME = 'rssnewx_0811'
+DIRNAME = u'/home/liza/Документы/data/opinion_2015/rssnewx_0811'
 
 # table with features for gold standard
 TABLE = 'table_template.csv'
@@ -45,13 +45,13 @@ with open(TABLE) as t:
 # fitting the classifier to our goldset data
 clf1.fit(features, labels)
 
-dir_path = os.path.join(os.getcwd(), DIRNAME)
+#dir_path = os.path.join(os.getcwd(), DIRNAME)
 # iterate through data folder
-for filename in os.listdir(dir_path):
+for filename in os.listdir(DIRNAME):
     if filename.endswith('.xml'):
         # open file
-        new_file = open(os.path.join(dir_path, filename[:-4] + '_parsed.txt'))
-        with open(os.path.join(dir_path, filename)) as f:
+        new_file = open(os.path.join(DIRNAME, filename[:-4] + '_parsed.txt'))
+        with open(os.path.join('analyzed', filename)) as f:
 
             # get content
             contents = et.fromstring(f.read())

@@ -1,3 +1,4 @@
+# coding: utf-8
 __author__ = 'elmira'
 
 import os
@@ -10,7 +11,7 @@ from xml.etree import ElementTree as et
 morph = pymorphy2.MorphAnalyzer()
 
 # directory with files
-DIRNAME = 'data_short'
+DIRNAME = 'sample'
 
 # token markers
 END_OF_FILE = ' EOF '
@@ -128,7 +129,28 @@ def analyze(tokens):
     return analyzed_tokens
 
 
-def features(DIRNAME):
+def features(text):
+    feats = []
+
+
+    # tokenize text
+    tokenized_text = tokenize(text)
+
+    # analyze tokens
+    analyzed = analyze(tokenized_text)
+
+    # categorize tokens
+    categorized = categorize(tokenized_text)
+
+    # write output
+    for token, category_tuple in zip(analyzed, categorized):
+        token.category = str(category_tuple[1])
+        feats.append(str(token))
+    return feats
+
+
+
+if __name__ == '__main__':
     dir_path = os.path.join(os.getcwd(), DIRNAME)
     output = open('features.csv', 'w', encoding='utf-8')
 
@@ -143,19 +165,8 @@ def features(DIRNAME):
                 # get content
                 contents = et.fromstring(f.read())
                 text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
-
-                # tokenize text
-                tokenized_text = tokenize(text)
-
-                # analyze tokens
-                analyzed = analyze(tokenized_text)
-
-                # categorize tokens
-                categorized = categorize(tokenized_text)
-
-                # write output
-                for token, category_tuple in zip(analyzed, categorized):
-                    token.category = str(category_tuple[1])
-                    output.write('%s\t%s\n' % (filename, str(token)))
+                feats = features(text)
+                for element in feats:
+                    output.write('%s\t%s\n' % (filename, element))
 
     output.close()

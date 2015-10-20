@@ -1,3 +1,4 @@
+# coding: utf-8
 __author__ = 'Sereni'
 """
 A module that creates gold standard by crudely marking direct speech borders
@@ -8,7 +9,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from xml.etree import ElementTree as et
 
 # directory with files
-DIRNAME = 'sample'
+DIRNAME = u'sample'
 VERB_PATH = 'verbs_with_tenses.txt'
 PARENTH_PATH = 'parenthesis.txt'
 
@@ -99,27 +100,29 @@ def tokenize(string):
         flattened += sentence
     return flattened
 
-dir_path = os.path.join(os.getcwd(), DIRNAME)
-output = open('categories.csv', 'w')
-# iterate through data folder
-for filename in os.listdir(dir_path):
-    if filename.endswith('xml'):
 
-        # open file
-        with open(os.path.join(dir_path, filename)) as f:
+if __name__ == '__main__':
+    dir_path = os.path.join(os.getcwd(), DIRNAME)
+    output = open('categories.csv', 'w')
+    # iterate through data folder
+    for filename in os.listdir(dir_path):
+        if filename.endswith('xml'):
 
-            # get content
-            contents = et.fromstring(f.read())
-            text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
+            # open file
+            with open(os.path.join(dir_path, filename)) as f:
 
-            # tokenize text
-            tokenized_text = tokenize(text)
+                # get content
+                contents = et.fromstring(f.read())
+                text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
 
-            # categorize tokens
-            categorized = categorize(tokenized_text)
+                # tokenize text
+                tokenized_text = tokenize(text)
 
-            # write output
-            for (token, category) in categorized:
-                output.write('%s\t%s\t%s\n' % (filename, token, category))
+                # categorize tokens
+                categorized = categorize(tokenized_text)
 
-output.close()
+                # write output
+                for (token, category) in categorized:
+                    output.write('%s\t%s\t%s\n' % (filename, token, category))
+
+    output.close()
