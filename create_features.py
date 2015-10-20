@@ -29,11 +29,11 @@ FRAGMENT_LENGTH = 5
 NEWLINE = re.compile('(\n|\r)+')
 QUOTES = {'"', "&quot", "&laquo", "&raquo", '``', "''"}
 SPEECH_VERBS = []
-with open('verbs_with_tenses.txt', 'r', encoding='utf-8') as verbs:
+with open('verbs_with_tenses.txt', 'r') as verbs:
     SPEECH_VERBS += [i.strip() for i in verbs.readlines()]
 
 SPEECH_PUNCT = []
-with open('speech_punct.txt', 'r', encoding='utf-8') as verbs:
+with open('speech_punct.txt', 'r') as verbs:
     SPEECH_PUNCT += [i.strip() for i in verbs.readlines()]
 
 
@@ -154,7 +154,7 @@ def features(text):
 if __name__ == '__main__':
 
     dir_path = os.path.join(os.getcwd(), DIRNAME)
-    output = open('features.csv', 'w', encoding='utf-8')
+    output = open('features.csv', 'w')
 
     # iterate through data folder
     for filename in sorted(os.listdir(dir_path)):
