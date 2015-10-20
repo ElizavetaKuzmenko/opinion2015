@@ -1,4 +1,3 @@
-# coding: utf-8
 __author__ = 'Sereni'
 """
 A module that creates gold standard by crudely marking direct speech borders
@@ -9,7 +8,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from xml.etree import ElementTree as et
 
 # directory with files
-DIRNAME = u'sample'
+DIRNAME = 'sample'
 VERB_PATH = 'verbs_with_tenses.txt'
 PARENTH_PATH = 'parenthesis.txt'
 
@@ -42,7 +41,7 @@ def load_verbs():
     VERBS.update(set([word.split()[1] for word in open(os.path.join(os.getcwd(), PARENTH_PATH), 'r').read().split('\n')]))
 
 
-def categorize(tokens):
+def categorize_direct(tokens):
     """
     :param tokens: a list of tokens
     :return a list of (token, category) tuples
@@ -100,8 +99,8 @@ def tokenize(string):
         flattened += sentence
     return flattened
 
-
 if __name__ == '__main__':
+
     dir_path = os.path.join(os.getcwd(), DIRNAME)
     output = open('categories.csv', 'w')
     # iterate through data folder
@@ -118,8 +117,8 @@ if __name__ == '__main__':
                 # tokenize text
                 tokenized_text = tokenize(text)
 
-                # categorize tokens
-                categorized = categorize(tokenized_text)
+                # categorize_direct tokens
+                categorized = categorize_direct(tokenized_text)
 
                 # write output
                 for (token, category) in categorized:
