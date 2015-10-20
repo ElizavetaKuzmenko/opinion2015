@@ -61,6 +61,7 @@ for filename in os.listdir(dir_path):
             tokenized_text = tokenize(text)
 
             for token in tokenized_text:
+                # Короче к этому моменту надо как-то заполучить фичи для токена и скормить их машинке
                 # TODO: here I need to incorporate a function that makes features for the token!!
                 token_features = some_function(token)
                 category = clf1.predict(token_features)
