@@ -128,33 +128,34 @@ def analyze(tokens):
     return analyzed_tokens
 
 
-dir_path = os.path.join(os.getcwd(), DIRNAME)
-output = open('features.csv', 'w', encoding='utf-8')
+def features(DIRNAME):
+    dir_path = os.path.join(os.getcwd(), DIRNAME)
+    output = open('features.csv', 'w', encoding='utf-8')
 
-# iterate through data folder
-for filename in sorted(os.listdir(dir_path)):
-    if filename.endswith('xml'):
-        print(filename)
+    # iterate through data folder
+    for filename in sorted(os.listdir(dir_path)):
+        if filename.endswith('xml'):
+            print(filename)
 
-        # open file
-        with open(os.path.join(dir_path, filename), encoding='utf-8') as f:
+            # open file
+            with open(os.path.join(dir_path, filename), encoding='utf-8') as f:
 
-            # get content
-            contents = et.fromstring(f.read())
-            text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
+                # get content
+                contents = et.fromstring(f.read())
+                text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
 
-            # tokenize text
-            tokenized_text = tokenize(text)
+                # tokenize text
+                tokenized_text = tokenize(text)
 
-            # analyze tokens
-            analyzed = analyze(tokenized_text)
+                # analyze tokens
+                analyzed = analyze(tokenized_text)
 
-            # categorize tokens
-            categorized = categorize(tokenized_text)
+                # categorize tokens
+                categorized = categorize(tokenized_text)
 
-            # write output
-            for token, category_tuple in zip(analyzed, categorized):
-                token.category = str(category_tuple[1])
-                output.write('%s\t%s\n' % (filename, str(token)))
+                # write output
+                for token, category_tuple in zip(analyzed, categorized):
+                    token.category = str(category_tuple[1])
+                    output.write('%s\t%s\n' % (filename, str(token)))
 
-output.close()
+    output.close()
