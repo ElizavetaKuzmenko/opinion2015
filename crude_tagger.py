@@ -9,6 +9,8 @@ from xml.etree import ElementTree as et
 
 # directory with files
 DIRNAME = 'rssnewx_0811'
+VERB_PATH = 'verbs_with_tenses.txt'
+PARENTH_PATH = 'parenthesis.txt'
 
 # token markers
 END_OF_FILE = ' EOF '
@@ -25,7 +27,19 @@ FRAGMENT_LENGTH = 5
 
 NEWLINE = re.compile('(\n|\r)+')
 QUOTES = {'"', "&quot", "&laquo", "&raquo", '``', "''"}
+VERBS = set([])
 
+
+def load_verbs():
+    """
+    Loads verbs from the file specified in VERB_PATH
+    Loads parentheses as well. For the purpose of dumb search we don't tell the difference
+    In parentheses, neglects "по" so I don't have to concatenate tokens
+    """
+    global VERBS
+    VERBS = {open(os.path.join(os.getcwd(), VERB_PATH), 'r').read().split('\n')}
+    VERBS.add([word for (preposition, word) in open(os.path.join(os.getcwd(), VERB_PATH), 'r').read().split('\n')])
+    
 
 def categorize(tokens):
     """
@@ -89,6 +103,10 @@ def tokenize(string):
 if __name__ == '__main__':
     dir_path = os.path.join(os.getcwd(), DIRNAME)
     output = open('categories.csv', 'w')
+
+    # load verbs of speech from the file
+    load_verbs()
+
     # iterate through data folder
     for filename in sorted(os.listdir(dir_path)):
         if filename.endswith('xml'):
@@ -111,3 +129,7 @@ if __name__ == '__main__':
                     output.write('%s\t%s\t%s\n' % (filename, token, category))
 
     output.close()
+
+
+# dumb way: find the verb, find the nearest comma
+# take the chunk from that comma to eos, either forward or backward, depending on location.
