@@ -151,6 +151,7 @@ def features(text):
 
 
 if __name__ == '__main__':
+
     dir_path = os.path.join(os.getcwd(), DIRNAME)
     output = open('features.csv', 'w', encoding='utf-8')
 
