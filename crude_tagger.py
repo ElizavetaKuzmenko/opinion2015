@@ -41,7 +41,7 @@ def load_verbs():
     VERBS.update(set([word.split()[1] for word in open(os.path.join(os.getcwd(), PARENTH_PATH), 'r').read().split('\n')]))
 
 
-def categorize(tokens):
+def categorize_direct(tokens):
     """
     :param tokens: a list of tokens
     :return a list of (token, category) tuples
@@ -99,27 +99,29 @@ def tokenize(string):
         flattened += sentence
     return flattened
 
-dir_path = os.path.join(os.getcwd(), DIRNAME)
-output = open('categories.csv', 'w')
-# iterate through data folder
-for filename in os.listdir(dir_path):
-    if filename.endswith('xml'):
+if __name__ == '__main__':
 
-        # open file
-        with open(os.path.join(dir_path, filename)) as f:
+    dir_path = os.path.join(os.getcwd(), DIRNAME)
+    output = open('categories.csv', 'w')
+    # iterate through data folder
+    for filename in os.listdir(dir_path):
+        if filename.endswith('xml'):
 
-            # get content
-            contents = et.fromstring(f.read())
-            text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
+            # open file
+            with open(os.path.join(dir_path, filename)) as f:
 
-            # tokenize text
-            tokenized_text = tokenize(text)
+                # get content
+                contents = et.fromstring(f.read())
+                text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
 
-            # categorize tokens
-            categorized = categorize(tokenized_text)
+                # tokenize text
+                tokenized_text = tokenize(text)
 
-            # write output
-            for (token, category) in categorized:
-                output.write('%s\t%s\t%s\n' % (filename, token, category))
+                # categorize_direct tokens
+                categorized = categorize_direct(tokenized_text)
 
-output.close()
+                # write output
+                for (token, category) in categorized:
+                    output.write('%s\t%s\t%s\n' % (filename, token, category))
+
+    output.close()
