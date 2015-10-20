@@ -61,7 +61,9 @@ for filename in os.listdir(dir_path):
             tokenized_text = tokenize(text)
 
             for token in tokenized_text:
-                category = clf1.predict(token)
+                # TODO: here I need to incorporate a function that makes features for the token!!
+                token_features = some_function(token)
+                category = clf1.predict(token_features)
                 if category == OPEN:
                     new_file.write('<UYUYGU>' + token + ' ')
                 elif category == CLOSE:
