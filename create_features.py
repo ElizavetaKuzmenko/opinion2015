@@ -4,7 +4,8 @@ __author__ = 'elmira'
 import os
 import re
 import pymorphy2
-from crude_tagger import tokenize, replace_newlines, categorize
+from crude_tagger import tokenize, replace_newlines
+from crude_tagger import categorize_direct as categorize
 from xml.etree import ElementTree as et
 
 # morphological parser

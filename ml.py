@@ -63,6 +63,7 @@ clf1.fit(features_gold, labels)
 # iterate through data folder
 for filename in os.listdir(DIRNAME):
     if filename.endswith('.xml'):
+        print(filename)
         # open file
         new_file = open(os.path.join(DIRNAME, filename[:-4] + '_parsed.txt'))
         with open(os.path.join('analyzed', filename)) as f:
