@@ -8,7 +8,9 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from xml.etree import ElementTree as et
 
 # directory with files
-DIRNAME = 'rssnewx_0811'
+DIRNAME = 'sample'
+VERB_PATH = 'verbs_with_tenses.txt'
+PARENTH_PATH = 'parenthesis.txt'
 
 # token markers
 END_OF_FILE = ' EOF '
@@ -25,6 +27,18 @@ FRAGMENT_LENGTH = 5
 
 NEWLINE = re.compile('(\n|\r)+')
 QUOTES = {'"', "&quot", "&laquo", "&raquo", '``', "''"}
+VERBS = set([])
+
+
+def load_verbs():
+    """
+    Loads verbs from the file specified in VERB_PATH
+    Loads parentheses as well. For the purpose of dumb search we don't tell the difference
+    In parentheses, neglects "по" so I don't have to concatenate tokens
+    """
+    global VERBS
+    VERBS = set(open(os.path.join(os.getcwd(), VERB_PATH), 'r').read().split('\n'))
+    VERBS.update(set([word.split()[1] for word in open(os.path.join(os.getcwd(), PARENTH_PATH), 'r').read().split('\n')]))
 
 
 def categorize(tokens):
