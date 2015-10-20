@@ -90,7 +90,7 @@ if __name__ == '__main__':
     dir_path = os.path.join(os.getcwd(), DIRNAME)
     output = open('categories.csv', 'w')
     # iterate through data folder
-    for filename in os.listdir(dir_path):
+    for filename in sorted(os.listdir(dir_path)):
         if filename.endswith('xml'):
 
             # open file
