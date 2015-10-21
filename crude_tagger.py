@@ -39,7 +39,8 @@ def load_verbs():
     """
     global VERBS
     VERBS = set(open(os.path.join(os.getcwd(), VERB_PATH), 'r').read().split('\n'))
-    VERBS.update(set([word.split()[1] for word in open(os.path.join(os.getcwd(), PARENTH_PATH), 'r').read().split('\n')]))
+    VERBS.update(
+        set([word.split()[1] for word in open(os.path.join(os.getcwd(), PARENTH_PATH), 'r').read().split('\n')]))
 
 
 def categorize_direct(tokens):
@@ -61,8 +62,8 @@ def categorize_direct(tokens):
 
                 # if a fragment is long enough, reassign categories to adjacent tokens
                 if close_pointer - open_pointer > FRAGMENT_LENGTH:
-                    categorized_tokens[open_pointer+1] = (categorized_tokens[open_pointer+1][0], OPEN)
-                    categorized_tokens[close_pointer-1] = (categorized_tokens[close_pointer-1][0], CLOSE)
+                    categorized_tokens[open_pointer + 1] = (categorized_tokens[open_pointer + 1][0], OPEN)
+                    categorized_tokens[close_pointer - 1] = (categorized_tokens[close_pointer - 1][0], CLOSE)
 
                 open_pointer = None
                 close_pointer = None
@@ -79,90 +80,112 @@ def categorize_direct(tokens):
     return categorized_tokens
 
 
-def find_comma(array):
+def find_comma(array, start=0):
     """
     Finds a comma in a given list of tokens. Returns index or None.
+    If index found, convert relative to absolute by adding to start index.
     Used to see if we hadn't missed a comma while not looking, and suddenly deciding to look again.
     """
     for i in range(len(array)):
         if array[i][0] == ',':
-            return i
+            return i + start
     return None
 
-def categorize_indirect(tokens):
 
+def mark_fragment(array, start, end):
+    if end-start > FRAGMENT_LENGTH:
+        array[start] = (array[start][0], OPEN)
+        array[end] = (array[end][0], CLOSE)
+
+
+def categorize_indirect(tokens):
     categorized = []
 
-    mark_commas = True  # set if in search for the next phrase; false if searching for limits of current phrase
-    seen_comma = None  # None or an index of the last good comma (ask me for definition of good)
-    last_EOS = -1  # marks last seen end of sentence marker
+    # define markers
+    last_comma = None
+    inside_speech = False
+    looking_for_next_comma = False
+    last_EOS = -1
     in_quotes = False
-    searching_for_next_comma = False  # when found a verb and only need the next comma
 
     for i in range(len(tokens)):
 
-        current_token = tokens[i]  # for debugging
+        current_token = tokens[i][0]  # for debugging
         categorized.append(tokens[i])  # transfer token unchanged first
 
         if not in_quotes:
 
-            if tokens[i][0] == ',' and mark_commas:
+            # если вижу, что началась прямая речь, я сбрасываю все пойнтеры и жду, пока она кончится
+            if tokens[i][1] == OPEN:
+                last_comma = None
+                inside_speech = False
+                looking_for_next_comma = False
+                in_quotes = True  # todo what about last EOS?
 
-                if searching_for_next_comma:
+            # если вижу запятую и мне нужны запятые, отмечаю запятую
+            elif current_token == ',' and not inside_speech:
+                last_comma = i
 
-                    searching_for_next_comma = False
-                    mark_commas = False  # from here on, look for exit markers and do not remember any commas
+                # если я искала следующую запятую, я говорю, что больше не ищу её, и больше не ищу запятые
+                if looking_for_next_comma:
+                    inside_speech = True
+                    looking_for_next_comma = False
 
-                seen_comma = i
-
-            elif tokens[i][0] == END_OF_SENTENCE:
+            # если вижу конец предложения, записываю его
+            elif current_token == END_OF_SENTENCE:
                 last_EOS = i
 
-            elif tokens[i][1] == 1:
-                in_quotes = True  # if we got inside direct speech, don't do anything until it's over
+            # если вижу конец параграфа / файла
+            elif current_token == END_OF_FILE.strip() or current_token == END_OF_PARAGRAPH.strip():
 
-                # we've been searching for an end of speech and stumbled into direct speech
-                # means we've gone too far, and let's chop it off at the previous sentence
-                if not mark_commas:
-                    categorized[seen_comma+1] = (categorized[seen_comma+1][0], OPEN)  # start
-                    categorized[last_EOS-1] = (categorized[last_EOS-1][0], CLOSE)  # end
-                    mark_commas = True
-                    seen_comma = find_comma(tokens[last_EOS: i])
+                # если я искала, отмечаю свой фрагмент
+                if inside_speech:
+                    mark_fragment(categorized, last_comma+1, i-3)
 
+                # в любом случае сбрасываю все пойнтеры
+                last_comma = None
+                inside_speech = False
+                looking_for_next_comma = False
+                last_EOS = i
+
+            # если вижу глагол, то депендс
+            elif current_token in VERBS:
+
+                # если мне нужны запятые в это время
+                if not inside_speech:
+
+                    # если я видела запятую в этом предложении, делаю фрагмент от начала предложения до запятой и сбрасываю пойнтеры
+                    if last_comma and last_EOS < last_comma:
+                        mark_fragment(categorized, last_EOS+1, last_comma-1)
+                        last_comma = None
+                        looking_for_next_comma = False
+
+                    # если я видела запятую в предыдущем предложении, то я ищу следующую запятую.
+                    elif last_comma and last_EOS > last_comma:
+                        looking_for_next_comma = True
+
+                    # если я не видела запятую, я ищу следующую запятую.
+                    elif not last_comma:
+                        looking_for_next_comma = True  # I know it's redundant as hell, but readable's better
+
+                # если мне не нужны запятые в это время, значит, произошла ошибка
                 else:
-                    seen_comma = None
+                    # от последней запятой до последнего конца предложения я делаю фрагмент
+                    mark_fragment(categorized, last_comma+1, last_EOS-2)
 
-            elif tokens[i][0] in VERBS:
+                    # от последнего конца предложения до глагола я ищу запятую
+                    last_comma = find_comma(categorized[last_EOS:i], last_EOS)
 
-                current_verb = (tokens[i], i)  # for debugging
-
-                if seen_comma:
-
-                    if not mark_commas:  # found a verb when looking for speech end; chop speech off at last EOS
-                        categorized[seen_comma+1] = (categorized[seen_comma+1][0], OPEN)  # start
-                        categorized[last_EOS-1] = (categorized[last_EOS-1][0], CLOSE)  # end
-                        mark_commas = True
-                        seen_comma = find_comma(tokens[last_EOS: i])
-
-                    # an actual good match, define phrase
+                    if last_comma:
+                        # если нашлась запятая, то делаю ещё фрагмент от начала предложения до этой запятой
+                        mark_fragment(categorized, last_EOS+1, last_comma-1)
+                        last_comma = None
+                    # если не нашлась, то ищу следующую запятую.
                     else:
-                        # find limits and set them to start and end
-                        categorized[last_EOS+1] = (categorized[last_EOS+1][0], OPEN)  # start
-                        categorized[seen_comma-1] = (categorized[seen_comma-1][0], CLOSE)  # end
-                        seen_comma = None
+                        looking_for_next_comma = True
 
-                else:
-                    searching_for_next_comma = True  # set a marker to let the next comma know it's the last
-
-            # exit markers
-
-            elif tokens[i][0] == END_OF_PARAGRAPH.strip() or tokens[i][0] == END_OF_FILE.strip():
-
-                if seen_comma:
-                    categorized[seen_comma+1] = (categorized[seen_comma+1][0], OPEN)
-                    categorized[i] = (categorized[i-2][0], CLOSE)  # -2 because before EOF/EOP there's normally an EOS
-                    seen_comma = None
-                    mark_commas = True
+                    inside_speech = False
+                    last_comma = None
 
         else:  # look if it's time to close the quotes and keep searching
             if tokens[i][1] == 2:
@@ -192,6 +215,7 @@ def tokenize(string):
         flattened += sentence
     return flattened
 
+
 if __name__ == '__main__':
 
     dir_path = os.path.join(os.getcwd(), DIRNAME)
@@ -205,7 +229,7 @@ if __name__ == '__main__':
             with open(os.path.join(dir_path, filename)) as f:
 
                 # get content
-                contents = et.fromstring(f.read())
+                contents = et.fromstring(f.read().replace('«', '"').replace('»', '"'))
                 text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
 
                 # tokenize text
