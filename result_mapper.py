@@ -39,7 +39,7 @@ for line in factfile:
 
         # process what we've got
         text = fill_gaps(text)
-r
+es
         authors = re.findall(author_pattern, text)
         phrases = re.findall(speech_pattern, speechfile.read())
 
