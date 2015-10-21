@@ -1,11 +1,11 @@
 # coding: utf-8
 __author__ = 'liza'
 
-import os, re, sys
+import os, re, sys, numpy
 from xml.etree import ElementTree as et
 from create_features import features
 from sklearn.svm import LinearSVC
-#from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.feature_extraction import DictVectorizer
 #from sklearn.linear_model import LogisticRegression
 #clf2 = LogisticRegression()
@@ -36,7 +36,7 @@ OTHER = 0
 NEWLINE = re.compile('(\n|\r)+')
 
 # preprocessing for categorical features -- POS
-#enc = OneHotEncoder()
+enc = OneHotEncoder()
 vec = DictVectorizer()
 categorical_integers = {'NOUN': 0, 'ADJF': 1, 'ADJS': 2, 'COMP': 3, 'VERB': 4, 'INFN': 5, 'PRTF': 6, 'PRTS': 7, 'GRND': 8,
                         'NUMR': 9, 'ADVB': 10, 'NPRO': 11, 'PRED': 12, 'PREP': 13, 'CONJ': 14, 'PRCL': 15, 'INTJ': 16, 'UNK': 17}
@@ -53,29 +53,35 @@ def replace_newlines(string):
 def parse_gold(TABLE):
     features_gold = []
     labels = []
-    #categorical = []
+    categorical = []
     with open(TABLE) as t:
         for line in t:
             if '-' in line:
                 continue
             data = line.strip().split('\t')
             labels.append(data[2])
+            categorical_features = []
             feature_vec = {}
-            for i in range(len(data[3:])):
+            for i in range(3, len(data)):
+                if data[i] not in categorical_integers:
+                    data[i] = int(data[i])
+                else:
+                    data[i] = categorical_integers[data[i]]
+                    #categorical_features.append(data[i])
                 feature_vec[i] = data[i]
             # TODO: cut the feature with quotes to avoid over-training
             #categorical_features = [categorical_integers[x] for x in data[6:13]]
             #categorical.append(categorical_features)
-            #features_gold.append(data[3:6] + categorical_features + data[13:])
+            #features_gold.append(data)
             features_gold.append(feature_vec)
     #enc.fit(categorical)
     #print(enc.transform([[13, 5, 4, 0, 0, 17, 17]]).toarray())
     #for i in range(len(features_gold)):
-    #    features_gold[i] = [int(x) for x in features_gold[i][:3]] + enc.transform([features_gold[i][3:10]]) + [int(x) for x in features_gold[i][10:]]
+    #    features_gold[i] = numpy.array(features_gold[i][:3]) + enc.transform([features_gold[i][3:10]]) + numpy.array(features_gold[i][10:])
     features_gold = vec.fit_transform(features_gold)
     return features_gold, labels
 
-sys.stdout.write('Training classifier...')
+print('Training classifier...')
 clf1 = LinearSVC()
 # fitting the classifier to our goldset data
 features_gold, labels = parse_gold(TABLE)
@@ -99,18 +105,21 @@ for filename in os.listdir(DIRNAME):
 
             for token in data:
                 token_features = token.split('\t')[2:]
+                token_token = token.split('\t')[0]
+                #print(token.split('\t'))
                 token_vec = {}
                 for i in range(len(token_features)):
                     token_vec[i] = token_features[i]
                 token_features = vec.fit_transform(token_vec)
                 #categorical_features = [categorical_integers[x] for x in token_features[6:13]]
-                #token_features = [int(x) for x in token_features[:3]] + enc.transform([categorical_features]) + [int(x) for x in token_features[10:]]
+                #token_features = numpy.array(token_features[:3]) + enc.transform([categorical_features]) + numpy.array(token_features[10:])
 
                 category = clf1.predict(token_features)
+                print(type(category))
                 if category == OPEN:
-                    new_file.write('<UYUYGU>' + token + ' ')
-                elif category == CLOSE:
-                    new_file.write(token + '</UYUYGU> ')
+                    new_file.write('<UYUYGU>' + token_token + ' ')
+                elif int(category[0]) == CLOSE:
+                    new_file.write(token_token + '</UYUYGU> ')
                 else:
-                    new_file.write(token + ' ')
+                    new_file.write(token_token + ' ')
         new_file.close()
