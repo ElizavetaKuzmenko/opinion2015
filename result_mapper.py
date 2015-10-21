@@ -39,12 +39,12 @@ for line in factfile:
 
         # process what we've got
         text = fill_gaps(text)
-es
+
         authors = re.findall(author_pattern, text)
         phrases = re.findall(speech_pattern, speechfile.read())
 
         for author, phrase in zip(authors, phrases):
-            output.write('%s\t%s\n' % (author, phrase))
+            output.write('%s\t%s\n' % (author, phrase.strip('^" ~')))
 
         text = ''
 
