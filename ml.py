@@ -67,15 +67,15 @@ def parse_gold(TABLE):
             #categorical_features = [categorical_integers[x] for x in data[6:13]]
             #categorical.append(categorical_features)
             #features_gold.append(data[3:6] + categorical_features + data[13:])
-            features_gold.append(vec.fit_transform(feature_vec))
+            features_gold.append(feature_vec)
     #enc.fit(categorical)
     #print(enc.transform([[13, 5, 4, 0, 0, 17, 17]]).toarray())
     #for i in range(len(features_gold)):
     #    features_gold[i] = [int(x) for x in features_gold[i][:3]] + enc.transform([features_gold[i][3:10]]) + [int(x) for x in features_gold[i][10:]]
-    #features_gold = vec.fit_transform(features_gold)
+    features_gold = vec.fit_transform(features_gold)
     return features_gold, labels
 
-print('Training classifier...')
+sys.stdout.write('Training classifier...')
 clf1 = LinearSVC()
 # fitting the classifier to our goldset data
 features_gold, labels = parse_gold(TABLE)
