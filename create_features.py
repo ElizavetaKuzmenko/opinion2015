@@ -5,7 +5,8 @@ import os
 import re
 import pymorphy2
 from crude_tagger import tokenize, replace_newlines
-from crude_tagger import categorize_direct as categorize
+from crude_tagger import categorize_direct
+from crude_tagger import categorize_indirect as categorize
 from xml.etree import ElementTree as et
 
 # morphological parser
@@ -141,15 +142,14 @@ def features(text):
     analyzed = analyze(tokenized_text)
 
     # categorize tokens
-    categorized = categorize(tokenized_text)
+    direct = categorize_direct(tokenized_text)
+    categorized = categorize(direct)
 
     # write output
     for token, category_tuple in zip(analyzed, categorized):
         token.category = str(category_tuple[1])
         feats.append(str(token))
     return feats
-
-
 
 if __name__ == '__main__':
 
@@ -165,7 +165,7 @@ if __name__ == '__main__':
             with open(os.path.join(dir_path, filename), encoding='utf-8') as f:
 
                 # get content
-                contents = et.fromstring(f.read())
+                contents = et.fromstring(f.read().replace('«', '"').replace('»', '"'))
                 text = END_OF_FILE.join([replace_newlines(node.text) for node in contents.findall('.//text')])
                 feats = features(text)
                 for element in feats:
