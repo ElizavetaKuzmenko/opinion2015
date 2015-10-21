@@ -23,7 +23,7 @@ def fill_gaps(t):
 
 factfile = open('facts.txt', 'r')
 
-filename = '1big_ru_DF07BDC7_0811T031348.xml'
+filename = 'autodr_ru_ACF35DED_0812T121424.xml'
 output = open('result/'+filename, 'w')
 speechfile = open('markup/'+filename, 'r')
 
@@ -39,7 +39,6 @@ for line in factfile:
 
         # process what we've got
         text = fill_gaps(text)
-r
         authors = re.findall(author_pattern, text)
         phrases = re.findall(speech_pattern, speechfile.read())
 

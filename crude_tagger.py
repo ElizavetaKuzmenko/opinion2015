@@ -13,7 +13,7 @@ MARKUP = True
 MARKUP_PATH = os.path.join(os.getcwd(), 'markup')
 
 # directory with files
-DIRNAME = 'rssnewx_0811'
+DIRNAME = 'golden'
 VERB_PATH = 'verbs_with_tenses.txt'
 PARENTH_PATH = 'parenthesis.txt'
 

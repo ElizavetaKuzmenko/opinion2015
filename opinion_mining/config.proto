@@ -8,7 +8,7 @@ TTextMinerConfig {
   MaxNamesCount = 0;
 
   Input = {
-    File = "test.txt";
+    Dir = "markup";
   }
 
   Articles = [
@@ -22,5 +22,6 @@ TTextMinerConfig {
   Output = {
     File = "facts.txt";
     Format = text;
+    Mode = append;
   }
 }
