@@ -8,8 +8,12 @@ import re
 from nltk.tokenize import sent_tokenize, word_tokenize
 from xml.etree import ElementTree as et
 
+# output text as marked up for Tomita?
+MARKUP = True
+MARKUP_PATH = os.path.join(os.getcwd(), 'markup')
+
 # directory with files
-DIRNAME = 'sample'
+DIRNAME = 'rssnewx_0811'
 VERB_PATH = 'verbs_with_tenses.txt'
 PARENTH_PATH = 'parenthesis.txt'
 
@@ -29,6 +33,31 @@ FRAGMENT_LENGTH = 5
 NEWLINE = re.compile('(\n|\r)+')
 QUOTES = {'"', "&quot", "&laquo", "&raquo", '``', "''"}
 VERBS = set([])
+
+PUNCT = {',', '.', ':', ';', '!', '?', '"', ')'}
+
+
+def markup_text(token_array, name):
+    """
+    Join tokens to form a text, and insert appropriate tags for found opinions
+    """
+    with open(os.path.join(MARKUP_PATH, name), 'w') as marked_file:
+        for word, tag in token_array:
+            if word in QUOTES:
+                word = '"'
+                if word == '``':
+                    word = ' '+word
+            if tag == OPEN:
+                word = "^ " + word
+            elif tag == CLOSE:
+                word += " ~"
+
+            if word == END_OF_PARAGRAPH.strip() or word == END_OF_FILE.strip() or word == END_OF_SENTENCE:
+                continue
+
+            if word not in PUNCT:
+                word = ' ' + word
+            marked_file.write(word)
 
 
 def load_verbs():
@@ -240,6 +269,11 @@ if __name__ == '__main__':
                 categorized = categorize_indirect(tokens)
 
                 # write output
+                if MARKUP:
+                    if not os.path.exists(MARKUP_PATH):
+                        os.makedirs(MARKUP_PATH)
+                    markup_text(categorized, name=filename)
+
                 for (token, category) in categorized:
                     output.write('%s\t%s\t%s\n' % (filename, token, category))
 
