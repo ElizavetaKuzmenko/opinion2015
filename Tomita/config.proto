@@ -1,0 +1,28 @@
+encoding "utf8";
+
+TTextMinerConfig {
+  Dictionary = "mydic.gzt";
+
+  PrettyOutput = "PrettyOutput.html";
+  PrintRules = 'rules.txt'
+  
+  MaxNamesCount = 0;
+
+  Input = {
+    Dir = "markup";
+  }
+
+  Articles = [
+  { Name = "Author" }
+  ]
+
+  Facts = [
+    { Name = "Author" }
+  ]
+
+  Output = {
+    File = "facts.txt";
+    Format = text;
+    Mode = append;
+  }
+}
